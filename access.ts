@@ -28,14 +28,42 @@ export const permissions = {
 // Rules can return a boolean or a filter which limits which product they can CRUD
 export const rules = {
   canManageProducts({ session }: ListAccessArgs) {
-    // 1. Do they have the permmission of canNManageProducts
+    if (!isSignedIn({ session })) {
+      return false;
+    }
+    // 1. Do they have the permmission of canManageProducts
     if (permissions.canManageProducts({ session })) {
       return true;
     }
     // 2. If not - do they own this product
     return { user: { id: session.itemId } };
   },
+  canOrder({ session }: ListAccessArgs) {
+    if (!isSignedIn({ session })) {
+      return false;
+    }
+    if (permissions.canManageCart({ session })) {
+      return true;
+    }
+    return { user: { id: session.itemId } };
+  },
+  canManageOrderItems({ session }: ListAccessArgs) {
+    if (!isSignedIn({ session })) {
+      return false;
+    }
+    if (permissions.canManageCart({ session })) {
+      return true;
+    }
+    // 2. If not, is it their order?
+    return { order: { user: { id: session.itemId } } };
+  },
   canReadProducts({ session }: ListAccessArgs) {
+    /* The course does this !isSignedIn if but it's better off without it
+      since we want to give users a chance to see our products
+    */
+    if (!isSignedIn({ session })) {
+      return false;
+    }
     if (permissions.canManageProducts({ session })) return true;
     return { status: 'AVAILABLE' };
   },
